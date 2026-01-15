@@ -2,15 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// Define Interfaces matching Backend/DB
 export interface AnalysisResult {
   disposal_method: string;
   bin_color: string;
   handling_instructions: string;
-  upcycling_ideas: string[];
   environmental_impact: string;
-  recyclability_score: number;
-  sdg_connection: string;
 }
 
 export interface MarketListing {
@@ -18,34 +14,25 @@ export interface MarketListing {
   title: string;
   price: string;
   condition: string;
-  emoji: string;
-  contactEmail: string;
-  sellerId?: string;
+  contact: string;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class EcoApiService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/api'; // Point to Node Backend
+  
+  // This points to the Node.js backend on the same domain
+  private apiUrl = '/api'; 
 
-  // AI Feature
-  analyzeItem(itemName: string): Observable<AnalysisResult> {
-    return this.http.post<AnalysisResult>(`${this.apiUrl}/analyze`, { item: itemName });
+  analyzeItem(item: string): Observable<AnalysisResult> {
+    return this.http.post<AnalysisResult>(`${this.apiUrl}/analyze`, { item });
   }
 
-  // Marketplace Features (MongoDB)
   getListings(): Observable<MarketListing[]> {
     return this.http.get<MarketListing[]>(`${this.apiUrl}/listings`);
   }
 
   createListing(listing: MarketListing): Observable<MarketListing> {
     return this.http.post<MarketListing>(`${this.apiUrl}/listings`, listing);
-  }
-
-  // Stripe Feature
-  createPaymentIntent(): Observable<{ clientSecret: string }> {
-    return this.http.post<{ clientSecret: string }>(`${this.apiUrl}/create-payment-intent`, {});
   }
 }
