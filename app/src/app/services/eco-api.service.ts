@@ -76,6 +76,12 @@ export class EcoApiService {
     return of([]);
   }
 
+  // Fixed: Added missing createEvent method
+  createEvent(event: any): Observable<any> {
+    if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/events`, event);
+    return of(null);
+  }
+
   submitVolunteer(data: any): Observable<any> {
     if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/volunteer`, data);
     return of(null);

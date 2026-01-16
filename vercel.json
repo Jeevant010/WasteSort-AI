@@ -2,23 +2,22 @@
   "version": 2,
   "builds": [
     {
-      "src": "backend/server.js",
-      "use": "@vercel/node"
+      "src": "app/package.json",
+      "use": "@vercel/static-build",
+      "installCommand": "npm --prefix app ci",
+      "buildCommand": "npm --prefix app run build",
+      "config": {
+        "distDir": "app/dist/waste-sort-ai"
+      }
     },
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist/waste-sort-ai" }
+      "src": "backend/server.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/backend/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "src": "/api/(.*)", "dest": "backend/server.js" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
