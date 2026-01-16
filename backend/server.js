@@ -16,7 +16,12 @@ app.use(cors({
     return cb(new Error('Not allowed by CORS'));
   }
 }));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, ts: new Date().toISOString() });
+});
 
 // AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
@@ -76,14 +81,33 @@ app.post('/api/analyze', async (req, res) => {
       return res.status(503).json({ error: "AI not configured. Set GEMINI_API_KEY." });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-09-2025" });
+    // Use a stable public model; allow override via env
+    const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-1.5-flash" });
+
     const prompt = `Analyze "${item}" for waste sorting. Return JSON only:
     { "disposal_method": "String", "bin_color": "String", "handling_instructions": "String", "environmental_impact": "String", "sdg_connection": "String" }`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const text = response.text().replace(/```json|```/g, '').trim();
-    res.json(JSON.parse(text));
+    let text = response.text().trim();
+
+    // Strip code fences if present
+    text = text.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
+
+    let payload;
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = {
+        disposal_method: "Unknown",
+        bin_color: "Unknown",
+        handling_instructions: text,
+        environmental_impact: "Unknown",
+        sdg_connection: "Unknown"
+      };
+    }
+
+    res.json(payload);
   } catch (error) {
     console.error("AI Error:", error);
     res.status(500).json({ error: "Analysis failed" });

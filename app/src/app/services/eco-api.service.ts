@@ -26,7 +26,7 @@ export class EcoApiService {
   private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
 
-  // TODO: REPLACE with your actual Render URL (e.g., 'https://wastesort-api.onrender.com/api')
+  // TODO: after backend deploy on Render, set your real URL here
   private readonly PROD_API = 'https://YOUR-RENDER-SERVICE.onrender.com/api';
 
   private apiUrl =
