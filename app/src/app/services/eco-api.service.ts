@@ -1,4 +1,4 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
@@ -18,19 +18,18 @@ export interface MarketListing {
   condition: string;
   contact: string;
   emoji?: string;
+  sellerId?: string;
+  sellerName?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class EcoApiService {
+  private http = inject(HttpClient);
+  private platformId = inject(PLATFORM_ID);
+  
+  private apiUrl = '/api'; 
 
-  // This points to the Node.js backend on the same domain
-  private apiUrl = '/api';
-
-  constructor(
-    private http: HttpClient,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
-
+  // --- AI ---
   analyzeItem(item: string): Observable<AnalysisResult> {
     if (isPlatformBrowser(this.platformId)) {
       return this.http.post<AnalysisResult>(`${this.apiUrl}/analyze`, { item });
@@ -38,17 +37,52 @@ export class EcoApiService {
     return of({} as AnalysisResult);
   }
 
+  // --- Market ---
   getListings(): Observable<MarketListing[]> {
-    if (isPlatformBrowser(this.platformId)) {
-      return this.http.get<MarketListing[]>(`${this.apiUrl}/listings`);
-    }
+    if (isPlatformBrowser(this.platformId)) return this.http.get<MarketListing[]>(`${this.apiUrl}/listings`);
     return of([]);
   }
 
-  createListing(listing: MarketListing): Observable<MarketListing> {
-    if (isPlatformBrowser(this.platformId)) {
-      return this.http.post<MarketListing>(`${this.apiUrl}/listings`, listing);
-    }
-    return of({} as MarketListing);
+  createListing(listing: MarketListing): Observable<any> {
+    if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/listings`, listing);
+    return of(null);
+  }
+
+  // --- Challenge (Real DB Sync) ---
+  getChallengeProgress(): Observable<number[]> {
+    if (isPlatformBrowser(this.platformId)) return this.http.get<number[]>(`${this.apiUrl}/challenge`);
+    return of([]);
+  }
+
+  updateChallenge(day: number, completed: boolean): Observable<any> {
+    if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/challenge`, { day, completed });
+    return of(null);
+  }
+
+  // --- Carbon (Real DB Save) ---
+  calculateCarbon(data: any): Observable<{score: number}> {
+    if (isPlatformBrowser(this.platformId)) return this.http.post<{score: number}>(`${this.apiUrl}/carbon`, data);
+    return of({score: 0});
+  }
+
+  // --- Utils ---
+  getNews(): Observable<any[]> {
+    if (isPlatformBrowser(this.platformId)) return this.http.get<any[]>(`${this.apiUrl}/news`);
+    return of([]);
+  }
+
+  getEvents(): Observable<any[]> {
+    if (isPlatformBrowser(this.platformId)) return this.http.get<any[]>(`${this.apiUrl}/events`);
+    return of([]);
+  }
+
+  submitVolunteer(data: any): Observable<any> {
+    if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/volunteer`, data);
+    return of(null);
+  }
+
+  sendMessage(data: any): Observable<any> {
+    if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/contact`, data);
+    return of(null);
   }
 }

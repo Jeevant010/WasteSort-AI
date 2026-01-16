@@ -1,24 +1,24 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { EcoApiService } from '../../services/eco-api.service';
 
-// --- 1. SDG Component ---
+// --- SDG ---
 @Component({
   selector: 'app-sdg',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="max-w-6xl mx-auto px-6 py-12">
-      <h2 class="text-4xl font-bold text-stone-800 mb-8 text-center">Sustainable Development Goals</h2>
+    <div class="max-w-6xl mx-auto px-6 py-12 animate-fade-in">
+      <h2 class="text-4xl font-bold text-stone-800 mb-12 text-center">Global Goals</h2>
       <div class="grid md:grid-cols-2 gap-8">
-        <div class="bg-[#BF8B2E] text-white p-8 rounded-3xl shadow-xl relative overflow-hidden group">
-          <div class="absolute -right-10 -bottom-10 text-9xl font-bold opacity-20">12</div>
-          <h3 class="text-2xl font-bold mb-4">Responsible Consumption</h3>
-          <p class="mb-6 opacity-90">Ensure sustainable consumption and production patterns. Reduce waste generation through prevention, reduction, recycling and reuse.</p>
+        <div class="bg-gradient-to-br from-amber-600 to-amber-700 text-white p-10 rounded-3xl shadow-xl hover:scale-[1.02] transition-transform">
+          <h3 class="text-3xl font-bold mb-4">12. Responsible Consumption</h3>
+          <p class="text-lg opacity-90">Doing more and better with less. Decoupling economic growth from environmental degradation.</p>
         </div>
-        <div class="bg-[#3F7E44] text-white p-8 rounded-3xl shadow-xl relative overflow-hidden group">
-          <div class="absolute -right-10 -bottom-10 text-9xl font-bold opacity-20">13</div>
-          <h3 class="text-2xl font-bold mb-4">Climate Action</h3>
-          <p class="mb-6 opacity-90">Take urgent action to combat climate change. Every small sorting decision reduces landfill methane emissions.</p>
+        <div class="bg-gradient-to-br from-emerald-700 to-teal-800 text-white p-10 rounded-3xl shadow-xl hover:scale-[1.02] transition-transform">
+          <h3 class="text-3xl font-bold mb-4">13. Climate Action</h3>
+          <p class="text-lg opacity-90">Take urgent action to combat climate change and its impacts.</p>
         </div>
       </div>
     </div>
@@ -26,190 +26,151 @@ import { CommonModule } from '@angular/common';
 })
 export class SdgComponent {}
 
-// --- 2. News Component ---
+// --- News ---
 @Component({
   selector: 'app-news',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="max-w-5xl mx-auto px-6 py-12">
-      <h2 class="text-3xl font-bold mb-8 text-stone-800">Latest in Green Tech</h2>
+    <div class="max-w-5xl mx-auto px-6 py-12 animate-fade-in">
+      <h2 class="text-3xl font-bold mb-8 text-stone-800">Green Tech News</h2>
       <div class="grid gap-6">
-        <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
-          <span class="text-emerald-600 text-xs font-bold uppercase">Innovation</span>
-          <h3 class="text-xl font-bold text-stone-800 mt-1">New Enzyme Eats Plastic in Hours</h3>
-          <p class="text-stone-500 mt-2">Scientists discover a super-enzyme that degrades PET plastic bottles 6x faster.</p>
-        </div>
-        <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
-          <span class="text-emerald-600 text-xs font-bold uppercase">Policy</span>
-          <h3 class="text-xl font-bold text-stone-800 mt-1">Global Plastic Treaty Talks Begin</h3>
-          <p class="text-stone-500 mt-2">UN member states gather to forge a legally binding international instrument.</p>
+        <div *ngFor="let item of news()" class="bg-white p-8 rounded-2xl border border-stone-100 shadow-sm hover:shadow-md transition-all">
+          <span class="text-emerald-600 font-bold uppercase text-xs tracking-wider mb-2 block">{{item.category}}</span>
+          <h3 class="text-2xl font-bold text-stone-800 mb-2">{{item.title}}</h3>
+          <p class="text-stone-600">{{item.summary}}</p>
         </div>
       </div>
     </div>
   `
 })
-export class NewsComponent {}
+export class NewsComponent implements OnInit {
+  api = inject(EcoApiService);
+  news = signal<any[]>([]);
+  ngOnInit() { this.api.getNews().subscribe(data => this.news.set(data)); }
+}
 
-// --- 3. Events Component ---
+// --- Events ---
 @Component({
   selector: 'app-events',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="max-w-5xl mx-auto px-6 py-12">
+    <div class="max-w-5xl mx-auto px-6 py-12 animate-fade-in">
       <h2 class="text-3xl font-bold text-stone-800 mb-8">Community Events</h2>
-      <div class="grid md:grid-cols-2 gap-6">
-        <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
-          <div class="h-32 bg-emerald-100 flex items-center justify-center text-emerald-800 text-3xl font-bold">12 OCT</div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let event of events()" class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm hover:shadow-xl transition-all">
+          <div class="h-32 bg-emerald-900 flex items-center justify-center text-emerald-400 text-3xl font-bold">{{event.day}}</div>
           <div class="p-6">
-            <h3 class="text-xl font-bold text-stone-900">Beach Cleanup Drive</h3>
-            <p class="text-stone-500">Santa Monica Pier</p>
-            <button class="mt-4 w-full py-2 border border-stone-300 rounded-lg font-bold hover:bg-stone-50">Join</button>
-          </div>
-        </div>
-        <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
-          <div class="h-32 bg-emerald-100 flex items-center justify-center text-emerald-800 text-3xl font-bold">15 OCT</div>
-          <div class="p-6">
-            <h3 class="text-xl font-bold text-stone-900">E-Waste Collection</h3>
-            <p class="text-stone-500">City Hall Parking</p>
-            <button class="mt-4 w-full py-2 border border-stone-300 rounded-lg font-bold hover:bg-stone-50">Join</button>
+            <h3 class="text-xl font-bold text-stone-900">{{event.title}}</h3>
+            <p class="text-stone-500 mb-4">📍 {{event.location}}</p>
+            <button class="w-full py-2 border border-stone-200 rounded-lg font-bold hover:bg-emerald-50 hover:text-emerald-700 transition-colors">Register</button>
           </div>
         </div>
       </div>
     </div>
   `
 })
-export class EventsComponent {}
+export class EventsComponent implements OnInit {
+  api = inject(EcoApiService);
+  events = signal<any[]>([]);
+  ngOnInit() { this.api.getEvents().subscribe(data => this.events.set(data)); }
+}
 
-// --- 4. Challenge Component ---
+// --- Challenge (FUNCTIONAL) ---
 @Component({
   selector: 'app-challenge',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="max-w-4xl mx-auto px-6 py-12">
-      <div class="bg-gradient-to-r from-teal-500 to-emerald-600 rounded-3xl p-8 text-white mb-8 text-center">
-        <h2 class="text-3xl font-bold mb-2">30-Day Eco Challenge</h2>
-        <p class="opacity-90">Small daily habits, massive global impact.</p>
+    <div class="max-w-4xl mx-auto px-6 py-12 animate-fade-in">
+      <div class="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-3xl p-10 text-white mb-10 text-center shadow-lg">
+        <h2 class="text-4xl font-bold mb-4">30-Day Eco Challenge</h2>
+        <p class="text-emerald-100 text-lg">Click a day to mark complete. Your progress is saved.</p>
       </div>
-      <div class="grid grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-3">
-        <div *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]" 
-             class="aspect-square rounded-xl border-2 flex flex-col items-center justify-center"
-             [ngClass]="i <= 5 ? 'bg-emerald-50 border-emerald-500' : 'border-stone-100'">
-          <span class="text-xs font-bold text-stone-400">Day</span>
-          <span class="text-xl font-bold" [ngClass]="i <= 5 ? 'text-emerald-600' : 'text-stone-800'">{{i}}</span>
-          <span *ngIf="i <= 5" class="text-xs">✅</span>
+      
+      <div class="grid grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-4">
+        <div *ngFor="let i of days" 
+             (click)="toggleDay(i)"
+             class="aspect-square rounded-2xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer hover:scale-105"
+             [ngClass]="completedDays().includes(i) ? 'bg-emerald-500 border-emerald-600 text-white shadow-md' : 'bg-white border-stone-100 text-stone-400 hover:border-emerald-200'">
+          <span class="text-xs font-bold uppercase tracking-wider">Day</span>
+          <span class="text-2xl font-bold">{{i}}</span>
+          <span *ngIf="completedDays().includes(i)" class="text-lg mt-1">✓</span>
         </div>
       </div>
     </div>
   `
 })
-export class ChallengeComponent {}
+export class ChallengeComponent implements OnInit {
+  api = inject(EcoApiService);
+  days = Array.from({length: 30}, (_, i) => i + 1);
+  completedDays = signal<number[]>([]);
 
-// --- 5. Carbon Component ---
+  ngOnInit() {
+    this.api.getChallengeProgress().subscribe(days => this.completedDays.set(days));
+  }
+
+  toggleDay(day: number) {
+    const isComplete = !this.completedDays().includes(day);
+    if (isComplete) this.completedDays.update(d => [...d, day]);
+    else this.completedDays.update(d => d.filter(x => x !== day));
+
+    // Save to MongoDB
+    this.api.updateChallenge(day, isComplete).subscribe();
+  }
+}
+
+// --- Carbon (FUNCTIONAL) ---
 @Component({
   selector: 'app-carbon',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
-    <div class="max-w-2xl mx-auto px-6 py-12">
-      <h2 class="text-3xl font-bold mb-6 text-center text-stone-800">Quick Footprint Estimate</h2>
-      <div class="bg-white p-8 rounded-2xl shadow-lg border border-stone-100">
-        <div class="space-y-4">
+    <div class="max-w-2xl mx-auto px-6 py-12 animate-slide-up">
+      <h2 class="text-3xl font-bold mb-2 text-center text-stone-800">Carbon Footprint</h2>
+      <p class="text-center text-stone-500 mb-8">Calculate your daily impact score.</p>
+      
+      <div class="bg-white p-8 rounded-3xl shadow-xl border border-stone-100">
+        <div class="space-y-6">
           <label class="block">
-            <span class="text-sm font-bold text-stone-600">Commute</span>
-            <select class="w-full mt-1 p-3 bg-stone-50 rounded-lg border border-stone-200">
-              <option>Car (Gas)</option><option>EV</option><option>Public Transport</option>
+            <span class="text-sm font-bold text-stone-600 uppercase">Commute</span>
+            <select [(ngModel)]="data.commute" class="w-full mt-2 p-4 bg-stone-50 rounded-xl outline-none border border-stone-200">
+              <option>Car (Gasoline)</option><option>Electric Vehicle</option><option>Public Transport</option><option>Cycling</option>
             </select>
           </label>
           <label class="block">
-            <span class="text-sm font-bold text-stone-600">Diet</span>
-            <select class="w-full mt-1 p-3 bg-stone-50 rounded-lg border border-stone-200">
-              <option>Omnivore</option><option>Vegetarian</option><option>Vegan</option>
+            <span class="text-sm font-bold text-stone-600 uppercase">Diet</span>
+            <select [(ngModel)]="data.diet" class="w-full mt-2 p-4 bg-stone-50 rounded-xl outline-none border border-stone-200">
+              <option>Meat Eater</option><option>Vegetarian</option><option>Vegan</option>
             </select>
           </label>
-          <button class="w-full py-4 bg-emerald-600 text-white font-bold rounded-xl">Calculate</button>
+          <button (click)="calculate()" class="w-full py-4 bg-stone-900 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors">
+            Calculate Impact
+          </button>
+        </div>
+
+        <div *ngIf="result !== null" class="mt-8 text-center p-6 bg-emerald-50 rounded-2xl animate-fade-in">
+          <p class="text-stone-500 mb-2">Your Daily Impact Score</p>
+          <div class="text-5xl font-bold text-emerald-600 mb-2">{{result}}</div>
+          <p class="text-sm text-emerald-800">Saved to your history!</p>
         </div>
       </div>
     </div>
   `
 })
-export class CarbonComponent {}
+export class CarbonComponent {
+  api = inject(EcoApiService);
+  data = { commute: 'Car (Gasoline)', diet: 'Meat Eater' };
+  result: number | null = null;
 
-// --- 6. Quiz Component ---
-@Component({
-  selector: 'app-quiz',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="max-w-3xl mx-auto px-6 py-12 text-center">
-      <h2 class="text-3xl font-bold mb-8 text-stone-800">Eco-Trivia</h2>
-      <div class="bg-white p-8 rounded-3xl shadow-xl border border-indigo-100">
-        <div class="text-6xl mb-6">🧠</div>
-        <h3 class="text-xl font-bold text-stone-800 mb-6">Which plastic is easiest to recycle?</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <button class="p-4 rounded-xl border-2 border-stone-100 hover:border-indigo-500 font-bold text-stone-600">PET (1)</button>
-          <button class="p-4 rounded-xl border-2 border-stone-100 hover:border-indigo-500 font-bold text-stone-600">PVC (3)</button>
-          <button class="p-4 rounded-xl border-2 border-stone-100 hover:border-indigo-500 font-bold text-stone-600">LDPE (4)</button>
-          <button class="p-4 rounded-xl border-2 border-stone-100 hover:border-indigo-500 font-bold text-stone-600">PS (6)</button>
-        </div>
-      </div>
-    </div>
-  `
-})
-export class QuizComponent {}
+  calculate() {
+    this.api.calculateCarbon(this.data).subscribe(res => this.result = res.score);
+  }
+}
 
-// --- 7. Volunteer Component ---
-@Component({
-  selector: 'app-volunteer',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="max-w-4xl mx-auto px-6 py-12">
-      <h2 class="text-3xl font-bold mb-6 text-stone-800">Join the Green Army</h2>
-      <div class="bg-white p-8 rounded-2xl border border-stone-200">
-        <form class="grid md:grid-cols-2 gap-6">
-          <input type="text" placeholder="Name" class="p-3 border rounded-lg">
-          <input type="email" placeholder="Email" class="p-3 border rounded-lg">
-          <button class="md:col-span-2 py-3 bg-stone-900 text-white font-bold rounded-lg">Sign Up</button>
-        </form>
-      </div>
-    </div>
-  `
-})
-export class VolunteerComponent {}
-
-// --- 8. About Component ---
-@Component({
-  selector: 'app-about',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="max-w-4xl mx-auto px-6 py-12">
-      <h2 class="text-4xl font-bold mb-8 text-stone-800">About EcoSort AI</h2>
-      <p class="text-lg leading-relaxed mb-6 text-stone-600">
-        We are a team of environmentalists and technologists dedicated to solving the global waste crisis using Artificial Intelligence.
-        By simplifying the complex rules of recycling, we empower individuals to make better choices every day.
-      </p>
-    </div>
-  `
-})
-export class AboutComponent {}
-
-// --- 9. Contact Component ---
-@Component({
-  selector: 'app-contact',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="max-w-3xl mx-auto px-6 py-12 text-center">
-      <h2 class="text-3xl font-bold mb-8 text-stone-800">Get in Touch</h2>
-      <div class="bg-white p-8 rounded-2xl shadow-lg">
-        <p class="text-stone-500">support&#64;ecosort.ai</p>
-        <p class="text-stone-500">123 Green Street, Eco City</p>
-      </div>
-    </div>
-  `
-})
-export class ContactComponent {}
+// --- Static Components ---
+@Component({ selector: 'app-quiz', standalone: true, imports: [CommonModule], template: `<div class="p-12 text-center text-stone-600">Quiz Component Loaded</div>` }) export class QuizComponent {}
+@Component({ selector: 'app-volunteer', standalone: true, imports: [CommonModule], template: `<div class="p-12 text-center text-stone-600">Volunteer Component Loaded</div>` }) export class VolunteerComponent {}
+@Component({ selector: 'app-about', standalone: true, imports: [CommonModule], template: `<div class="p-12 text-center text-stone-600">About Component Loaded</div>` }) export class AboutComponent {}
+@Component({ selector: 'app-contact', standalone: true, imports: [CommonModule], template: `<div class="p-12 text-center text-stone-600">Contact Component Loaded</div>` }) export class ContactComponent {}
