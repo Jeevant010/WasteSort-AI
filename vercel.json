@@ -2,28 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/waste-sort-ai/browser"
-      }
-    },
-    {
       "src": "backend/server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/backend/server.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/browser/index.html"
-    }
+    { "src": "/api/(.*)", "dest": "/backend/server.js" }
   ]
 }
