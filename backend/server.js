@@ -115,48 +115,26 @@ app.post('/api/contact', async (req, res) => {
   res.json({ success: true });
 });
 
-// Dynamic News via AI
-app.get('/api/news', async (req, res) => {
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-09-2025" });
-    const prompt = `Generate 3 recent, positive environmental news headlines from this year. 
-    Return a valid JSON array of objects with keys: title, category, summary, source. 
-    Example: [{"title": "Ocean Cleanup", "category": "Innovation", "summary": "...", "source": "BBC"}]`;
-    
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().replace(/```json|```/g, '').trim();
-    res.json(JSON.parse(text));
-  } catch (e) {
-    // Fallback if AI fails
-    res.json([
-      { title: 'New Enzyme Degrading Plastic', category: 'Innovation', summary: 'Scientists find bacteria that eats PET.', source: 'Science Daily' },
-      { title: 'Global Plastic Treaty', category: 'Policy', summary: 'UN agrees on binding rules.', source: 'UN News' }
-    ]);
-  }
+app.get('/api/news', (req, res) => {
+  res.json([
+    { title: 'New Enzyme Degrading Plastic', category: 'Innovation', summary: 'Scientists find bacteria that eats PET.' },
+    { title: 'Global Plastic Treaty', category: 'Policy', summary: 'UN agrees on binding rules.' }
+  ]);
 });
 
-// Dynamic Events via AI
-app.get('/api/events', async (req, res) => {
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-09-2025" });
-    const prompt = `Generate 3 realistic upcoming community eco-events for the current month.
-    Return a valid JSON array of objects with keys: title, location, day (e.g. "12 OCT").`;
-    
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().replace(/```json|```/g, '').trim();
-    res.json(JSON.parse(text));
-  } catch (e) {
-    res.json([
-      { title: 'Beach Cleanup', location: 'Santa Monica', day: '12 OCT' },
-      { title: 'E-Waste Drive', location: 'City Hall', day: '15 OCT' }
-    ]);
-  }
+app.get('/api/events', (req, res) => {
+  res.json([
+    { title: 'Beach Cleanup', location: 'Santa Monica', day: '12 OCT' },
+    { title: 'E-Waste Drive', location: 'City Hall', day: '15 OCT' }
+  ]);
 });
 
 // Start Server
 const PORT = process.env.PORT || 3000;
+// Only listen if run directly (Localhost)
 if (require.main === module) {
   app.listen(PORT, () => console.log(`🚀 API Server running on port ${PORT}`));
 }
 
+// Export for Vercel
 module.exports = app;
