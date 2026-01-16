@@ -4,9 +4,8 @@
     {
       "src": "package.json",
       "use": "@vercel/static-build",
-      "config": { 
-        "distDir": "dist/waste-sort-ai",
-        "command": "npm run build"
+      "config": {
+        "distDir": "dist/waste-sort-ai/browser"
       }
     },
     {
@@ -24,7 +23,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/browser/index.html"
     }
   ]
 }
