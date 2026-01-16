@@ -3,7 +3,7 @@
   "outputDirectory": "app/dist/waste-sort-ai/browser",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
