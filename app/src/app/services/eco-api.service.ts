@@ -26,7 +26,8 @@ export class EcoApiService {
   private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
 
-  // Replace with your actual Render URL:
+  // Replace with your actual Render URL, e.g.:
+  // 'https://wastesort-api.onrender.com/api'
   private readonly PROD_API = 'https://YOUR-RENDER-SERVICE.onrender.com/api';
 
   private apiUrl =
@@ -40,38 +41,47 @@ export class EcoApiService {
     }
     return of({} as AnalysisResult);
   }
+
   getListings(): Observable<MarketListing[]> {
     if (isPlatformBrowser(this.platformId)) return this.http.get<MarketListing[]>(`${this.apiUrl}/listings`);
     return of([]);
   }
+
   createListing(listing: MarketListing): Observable<any> {
     if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/listings`, listing);
     return of(null);
   }
+
   getChallengeProgress(): Observable<number[]> {
     if (isPlatformBrowser(this.platformId)) return this.http.get<number[]>(`${this.apiUrl}/challenge`);
     return of([]);
   }
+
   updateChallenge(day: number, completed: boolean): Observable<any> {
     if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/challenge`, { day, completed });
     return of(null);
   }
+
   calculateCarbon(data: any): Observable<{score: number}> {
     if (isPlatformBrowser(this.platformId)) return this.http.post<{score: number}>(`${this.apiUrl}/carbon`, data);
     return of({score: 0});
   }
+
   getNews(): Observable<any[]> {
     if (isPlatformBrowser(this.platformId)) return this.http.get<any[]>(`${this.apiUrl}/news`);
     return of([]);
   }
+
   getEvents(): Observable<any[]> {
     if (isPlatformBrowser(this.platformId)) return this.http.get<any[]>(`${this.apiUrl}/events`);
     return of([]);
   }
+
   submitVolunteer(data: any): Observable<any> {
     if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/volunteer`, data);
     return of(null);
   }
+
   sendMessage(data: any): Observable<any> {
     if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/contact`, data);
     return of(null);
