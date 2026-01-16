@@ -6,7 +6,7 @@
       "use": "@vercel/static-build",
       "config": {
         "buildCommand": "npm run build",
-        "distDir": "dist"
+        "distDir": "dist/app/browser"
       }
     },
     {
@@ -15,16 +15,8 @@
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/backend/server.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "src": "/api/(.*)", "dest": "/backend/server.js" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
