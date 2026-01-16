@@ -26,8 +26,14 @@ export interface MarketListing {
 export class EcoApiService {
   private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
-  
-  private apiUrl = '/api'; 
+
+  // Dynamic API base URL:
+  // - Dev: call backend directly via CORS (http://localhost:3000/api)
+  // - Prod (Vercel): same-origin (/api) through vercel.json routes
+  private apiUrl =
+    isPlatformBrowser(this.platformId)
+      ? (location.hostname === 'localhost' ? 'http://localhost:3000/api' : '/api')
+      : '/api';
 
   // --- AI ---
   analyzeItem(item: string): Observable<AnalysisResult> {
@@ -48,7 +54,7 @@ export class EcoApiService {
     return of(null);
   }
 
-  // --- Challenge (Real DB Sync) ---
+  // --- Challenge ---
   getChallengeProgress(): Observable<number[]> {
     if (isPlatformBrowser(this.platformId)) return this.http.get<number[]>(`${this.apiUrl}/challenge`);
     return of([]);
@@ -59,7 +65,7 @@ export class EcoApiService {
     return of(null);
   }
 
-  // --- Carbon (Real DB Save) ---
+  // --- Carbon ---
   calculateCarbon(data: any): Observable<{score: number}> {
     if (isPlatformBrowser(this.platformId)) return this.http.post<{score: number}>(`${this.apiUrl}/carbon`, data);
     return of({score: 0});

@@ -4,14 +4,8 @@ import angular from '@analogjs/vite-plugin-angular';
 export default defineConfig({
   plugins: [angular()],
   server: {
-    port: 4200,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        secure: false
-      }
-    }
+    port: 4200
+    // No proxy: Angular app calls backend directly (http://localhost:3000) via CORS in dev.
   },
   build: {
     outDir: 'dist/waste-sort-ai',

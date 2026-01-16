@@ -21,7 +21,7 @@ import { EcoApiService, MarketListing } from '../../services/eco-api.service';
           <form (ngSubmit)="submitListing()" class="grid md:grid-cols-2 gap-4">
             <input [(ngModel)]="newItem.title" name="title" placeholder="Title" class="p-3 border rounded">
             <input [(ngModel)]="newItem.price" name="price" placeholder="Price" class="p-3 border rounded">
-            <input [(ngModel)]="newItem.contactEmail" name="contact" placeholder="Email" class="p-3 border rounded">
+            <input [(ngModel)]="newItem.contact" name="contact" placeholder="Email" class="p-3 border rounded">
             <button type="submit" class="bg-emerald-600 text-white p-3 rounded font-bold">Post Listing</button>
           </form>
         </div>
@@ -44,10 +44,10 @@ import { EcoApiService, MarketListing } from '../../services/eco-api.service';
 })
 export class MarketplaceComponent implements OnInit {
   private api = inject(EcoApiService);
-  
+
   listings = signal<MarketListing[]>([]);
   showForm = signal(false);
-  newItem: any = { title: '', price: '', contactEmail: '', condition: 'Good', emoji: '📦' };
+  newItem: any = { title: '', price: '', contact: '', condition: 'Good', emoji: '📦' };
 
   ngOnInit() {
     this.loadListings();
