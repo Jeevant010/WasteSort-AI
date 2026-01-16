@@ -1,4 +1,3 @@
-import { Routes } from '@angular/router';
 import { HomeComponent } from './features/home/home.component';
 import { AnalyzerComponent } from './features/analyzer/analyzer.component';
 import { MarketplaceComponent } from './features/marketplace/marketplace.component';
@@ -6,6 +5,9 @@ import {
   SdgComponent, NewsComponent, EventsComponent, ChallengeComponent, 
   CarbonComponent, QuizComponent, VolunteerComponent, AboutComponent, ContactComponent 
 } from './features/pages/pages.component';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -22,3 +24,8 @@ export const routes: Routes = [
   { path: 'about', component: AboutComponent },
   { path: 'contact', component: ContactComponent }
 ];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes, { useHash: true })],
+  exports: [RouterModule]
+})export class AppRoutingModule {}
