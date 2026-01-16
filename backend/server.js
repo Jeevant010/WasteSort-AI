@@ -5,23 +5,33 @@ const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-// Allow requests from Angular Local (4200) & Vercel
+// CORS
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:4200,https://YOUR-VERCEL-DOMAIN.vercel.app')
+  .split(',').map(s => s.trim());
+
 app.use(cors({
-  origin: ['http://localhost:4200', 'https://wastesort-ai.vercel.app'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error('Not allowed by CORS'));
+  }
 }));
 app.use(express.json());
 
-// --- MongoDB Connection ---
-const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/ecosort";
-mongoose.connect(mongoUri)
-  .then(() => console.log('✅ MongoDB Connected'))
-  .catch(err => console.error('❌ MongoDB Error:', err));
+// AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-// --- Schemas ---
+// MongoDB
+const mongoUri = process.env.MONGODB_URI;
+if (mongoUri) {
+  mongoose.connect(mongoUri)
+    .then(() => console.log('✅ MongoDB Connected'))
+    .catch(err => console.error('❌ MongoDB Error:', err));
+} else {
+  console.warn('⚠️ MONGODB_URI not set. Database features disabled.');
+}
+
+// Schemas & Models
 const ListingSchema = new mongoose.Schema({
   title: String, price: String, condition: String, contact: String, emoji: String,
   sellerId: String, sellerName: String,
@@ -30,13 +40,16 @@ const ListingSchema = new mongoose.Schema({
 const Listing = mongoose.model('Listing', ListingSchema);
 
 const ChallengeSchema = new mongoose.Schema({
-  day: Number, completed: { type: Boolean, default: false },
+  day: Number,
+  completed: { type: Boolean, default: false },
   updatedAt: { type: Date, default: Date.now }
 });
 const Challenge = mongoose.model('Challenge', ChallengeSchema);
 
 const CarbonSchema = new mongoose.Schema({
-  commute: String, diet: String, score: Number,
+  commute: String,
+  diet: String,
+  score: Number,
   createdAt: { type: Date, default: Date.now }
 });
 const Carbon = mongoose.model('Carbon', CarbonSchema);
@@ -53,21 +66,20 @@ const ContactSchema = new mongoose.Schema({
 });
 const Contact = mongoose.model('Contact', ContactSchema);
 
-// --- API Routes ---
-
-app.get('/', (req, res) => {
-  res.send('EcoSort API is running (2-Server Mode)');
-});
-
+// API routes
 app.post('/api/analyze', async (req, res) => {
   try {
     const { item } = req.body;
     if (!item) return res.status(400).json({ error: "Item is required" });
 
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({ error: "AI not configured. Set GEMINI_API_KEY." });
+    }
+
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-09-2025" });
     const prompt = `Analyze "${item}" for waste sorting. Return JSON only:
     { "disposal_method": "String", "bin_color": "String", "handling_instructions": "String", "environmental_impact": "String", "sdg_connection": "String" }`;
-    
+
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text().replace(/```json|```/g, '').trim();
@@ -79,46 +91,63 @@ app.post('/api/analyze', async (req, res) => {
 });
 
 app.get('/api/listings', async (req, res) => {
-  const listings = await Listing.find().sort({ createdAt: -1 });
-  res.json(listings);
+  try {
+    const listings = await Listing.find().sort({ createdAt: -1 });
+    res.json(listings);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/listings', async (req, res) => {
-  try { await new Listing(req.body).save(); res.status(201).json({ success: true }); } 
-  catch (e) { res.status(500).json({ error: e.message }); }
+  try {
+    const created = await new Listing(req.body).save();
+    res.json(created);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.get('/api/challenge', async (req, res) => {
-  const progress = await Challenge.find({ completed: true });
-  res.json(progress.map(p => p.day));
+  try {
+    const progress = await Challenge.find({ completed: true });
+    res.json(progress.map(p => p.day));
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/challenge', async (req, res) => {
-  const { day, completed } = req.body;
-  await Challenge.findOneAndUpdate({ day }, { completed }, { upsert: true });
-  res.json({ success: true });
+  try {
+    const { day, completed } = req.body;
+    await Challenge.findOneAndUpdate({ day }, { completed }, { upsert: true });
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/carbon', async (req, res) => {
-  const { commute, diet } = req.body;
-  let score = 1000;
-  if (commute.includes('Car')) score += 500;
-  if (diet.includes('Meat')) score += 600;
-  await new Carbon({ commute, diet, score }).save();
-  res.json({ score });
+  try {
+    const { commute, diet } = req.body;
+    let score = 1000;
+    if (commute?.includes('Car')) score += 500;
+    if (commute?.includes('EV')) score += 200;
+    if (diet?.includes('Meat')) score += 600;
+    if (diet?.includes('Vegan')) score -= 100;
+    await new Carbon({ commute, diet, score }).save();
+    res.json({ score });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/volunteer', async (req, res) => {
-  await new Volunteer(req.body).save();
-  res.json({ success: true });
+  try {
+    await new Volunteer(req.body).save();
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/contact', async (req, res) => {
-  await new Contact(req.body).save();
-  res.json({ success: true });
+  try {
+    await new Contact(req.body).save();
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.get('/api/news', (req, res) => {
   res.json([
     { title: 'New Enzyme Degrading Plastic', category: 'Innovation', summary: 'Scientists find bacteria that eats PET.' },
-    { title: 'Global Plastic Treaty', category: 'Policy', summary: 'UN agrees on binding rules.' }
+    { title: 'Global Plastic Treaty', category: 'Policy', summary: 'UN agrees on binding rules.' },
+    { title: 'E-Waste Gold Rush', category: 'Tech', summary: 'Recycling smartphones is now profitable.' }
   ]);
 });
 
@@ -129,12 +158,6 @@ app.get('/api/events', (req, res) => {
   ]);
 });
 
-// Start Server
+// Start server for Render/local
 const PORT = process.env.PORT || 3000;
-// Only listen if run directly (Localhost)
-if (require.main === module) {
-  app.listen(PORT, () => console.log(`🚀 API Server running on port ${PORT}`));
-}
-
-// Export for Vercel
-module.exports = app;
+app.listen(PORT, () => console.log(`🚀 API running on http://localhost:${PORT}`));
