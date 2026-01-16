@@ -4,13 +4,10 @@
     {
       "src": "app/package.json",
       "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/waste-sort-ai"
-      }
+      "config": { "distDir": "dist/waste-sort-ai" }
     }
   ],
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
