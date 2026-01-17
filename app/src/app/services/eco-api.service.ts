@@ -23,16 +23,14 @@ class EcoApiService {
 
   private getApiUrl(): string {
     if (typeof window === 'undefined') return this.PROD_API;
-    return window.location.hostname === 'localhost' 
-      ? 'http://localhost:3000/api' 
-      : this.PROD_API;
+    return window.location.hostname === 'localhost' ? 'http://localhost:3000/api' : this.PROD_API;
   }
 
   async analyzeItem(item: string): Promise<AnalysisResult> {
     const response = await fetch(`${this.getApiUrl()}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ item })
+      body: JSON.stringify({ item }),
     });
     return response.json();
   }
@@ -46,7 +44,7 @@ class EcoApiService {
     const response = await fetch(`${this.getApiUrl()}/listings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(listing)
+      body: JSON.stringify(listing),
     });
     return response.json();
   }
@@ -60,16 +58,16 @@ class EcoApiService {
     const response = await fetch(`${this.getApiUrl()}/challenge`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ day, completed })
+      body: JSON.stringify({ day, completed }),
     });
     return response.json();
   }
 
-  async calculateCarbon(data: any): Promise<{score: number}> {
+  async calculateCarbon(data: any): Promise<{ score: number }> {
     const response = await fetch(`${this.getApiUrl()}/carbon`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
     return response.json();
   }
@@ -88,7 +86,7 @@ class EcoApiService {
     const response = await fetch(`${this.getApiUrl()}/volunteer`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
     return response.json();
   }
@@ -97,7 +95,7 @@ class EcoApiService {
     const response = await fetch(`${this.getApiUrl()}/contact`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
     return response.json();
   }
