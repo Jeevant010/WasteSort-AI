@@ -6,14 +6,27 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 
-// --- 1. FIXED CORS SETUP ---
-// Simplified CORS configuration to handle preflight requests correctly
-app.use(cors({
-  origin: ['http://localhost:4200', 'http://127.0.0.1:4200', 'https://wastesort-ai.vercel.app'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+// CORS
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:4200,https://YOUR-VERCEL-DOMAIN.vercel.app')
+  .split(',').map(s => s.trim());
+
+const corsOptions = {
+  origin: (origin, cb) => {
+    // Allow no origin (curl/postman) and explicit allowed origins
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    // Allow all localhost/127.0.0.1 ports for dev convenience
+    if (/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) return cb(null, true);
+    return cb(new Error(`Not allowed by CORS: ${origin}`));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: false
+};
+
+app.use(cors(corsOptions));
+// Ensure preflight is handled for any route
+app.options('*', cors(corsOptions));
 
 app.use(express.json({ limit: '1mb' }));
 
@@ -22,15 +35,20 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
 });
 
-// AI Setup
+// AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-// MongoDB Connection
-const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/ecosort";
-mongoose.connect(mongoUri)
-  .then(() => console.log('✅ MongoDB Connected'))
-  .catch(err => console.error('❌ MongoDB Error:', err));
+// MongoDB
+const mongoUri = process.env.MONGODB_URI;
+if (mongoUri) {
+  mongoose.connect(mongoUri)
+    .then(() => console.log('✅ MongoDB Connected'))
+    .catch(err => console.error('❌ MongoDB Error:', err));
+} else {
+  console.warn('⚠️ MONGODB_URI not set. Database features disabled.');
+}
 
+// ...rest of your routes unchanged...
 // --- Schemas & Models ---
 const ListingSchema = new mongoose.Schema({
   title: String, price: String, condition: String, contact: String, emoji: String,
