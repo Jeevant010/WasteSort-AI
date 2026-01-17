@@ -1,32 +1,53 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
+// const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 
-// CORS
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:4200,https://YOUR-VERCEL-DOMAIN.vercel.app')
-  .split(',').map(s => s.trim());
+// CORS Configuration - Read from .env file
+// const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:4200')
+//   .split(',')
+//   .map(origin => origin.trim())
+//   .filter(origin => origin.length > 0);
 
-const corsOptions = {
-  origin: (origin, cb) => {
-    // Allow no origin (curl/postman) and explicit allowed origins
-    if (!origin) return cb(null, true);
-    if (allowedOrigins.includes(origin)) return cb(null, true);
-    // Allow all localhost/127.0.0.1 ports for dev convenience
-    if (/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) return cb(null, true);
-    return cb(new Error(`Not allowed by CORS: ${origin}`));
-  },
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: false
-};
+// console.log('🌐 Allowed CORS origins:', allowedOrigins);
 
-app.use(cors(corsOptions));
-// Ensure preflight is handled for any route
-app.options('*', cors(corsOptions));
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     // Allow requests with no origin (like mobile apps, curl, Postman)
+//     if (!origin) {
+//       return callback(null, true);
+//     }
+    
+//     // Check if origin is in allowed list
+//     if (allowedOrigins.includes(origin)) {
+//       console.log(`✅ CORS allowed: ${origin}`);
+//       callback(null, true);
+//     } else {
+//       // In development, also allow any localhost origin
+//       if (process.env.NODE_ENV !== 'production') {
+//         if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+//           console.log(`✅ CORS allowed (dev mode): ${origin}`);
+//           callback(null, true);
+//         } else {
+//           console.warn(`⚠️ CORS blocked origin: ${origin}`);
+//           callback(new Error(`Not allowed by CORS: ${origin}`));
+//         }
+//       } else {
+//         console.warn(`⚠️ CORS blocked origin: ${origin}`);
+//         callback(new Error(`Not allowed by CORS: ${origin}`));
+//       }
+//     }
+//   },
+//   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   credentials: false,
+//   optionsSuccessStatus: 204
+// };
+
+// app.use(cors(corsOptions));
 
 app.use(express.json({ limit: '1mb' }));
 
