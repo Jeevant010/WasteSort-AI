@@ -6,16 +6,15 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 
-// CORS
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:4200,https://YOUR-VERCEL-DOMAIN.vercel.app')
-  .split(',').map(s => s.trim());
-
+// --- 1. FIXED CORS SETUP ---
+// Simplified CORS configuration to handle preflight requests correctly
 app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-    return cb(new Error('Not allowed by CORS'));
-  }
+  origin: ['http://localhost:4200', 'http://127.0.0.1:4200', 'https://wastesort-ai.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
+
 app.use(express.json({ limit: '1mb' }));
 
 // Health check
@@ -23,20 +22,16 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
 });
 
-// AI
+// AI Setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-// MongoDB
-const mongoUri = process.env.MONGODB_URI;
-if (mongoUri) {
-  mongoose.connect(mongoUri)
-    .then(() => console.log('✅ MongoDB Connected'))
-    .catch(err => console.error('❌ MongoDB Error:', err));
-} else {
-  console.warn('⚠️ MONGODB_URI not set. Database features disabled.');
-}
+// MongoDB Connection
+const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/ecosort";
+mongoose.connect(mongoUri)
+  .then(() => console.log('✅ MongoDB Connected'))
+  .catch(err => console.error('❌ MongoDB Error:', err));
 
-// Schemas & Models
+// --- Schemas & Models ---
 const ListingSchema = new mongoose.Schema({
   title: String, price: String, condition: String, contact: String, emoji: String,
   sellerId: String, sellerName: String,
@@ -71,18 +66,15 @@ const ContactSchema = new mongoose.Schema({
 });
 const Contact = mongoose.model('Contact', ContactSchema);
 
-// API routes
+// --- API Routes ---
+
 app.post('/api/analyze', async (req, res) => {
   try {
     const { item } = req.body;
     if (!item) return res.status(400).json({ error: "Item is required" });
 
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(503).json({ error: "AI not configured. Set GEMINI_API_KEY." });
-    }
-
-    // Use a stable public model; allow override via env
-    const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-1.5-flash" });
+    // Use specific model as requested
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-09-2025" });
 
     const prompt = `Analyze "${item}" for waste sorting. Return JSON only:
     { "disposal_method": "String", "bin_color": "String", "handling_instructions": "String", "environmental_impact": "String", "sdg_connection": "String" }`;
@@ -90,24 +82,10 @@ app.post('/api/analyze', async (req, res) => {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     let text = response.text().trim();
-
-    // Strip code fences if present
+    // Clean up code fences
     text = text.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
 
-    let payload;
-    try {
-      payload = JSON.parse(text);
-    } catch {
-      payload = {
-        disposal_method: "Unknown",
-        bin_color: "Unknown",
-        handling_instructions: text,
-        environmental_impact: "Unknown",
-        sdg_connection: "Unknown"
-      };
-    }
-
-    res.json(payload);
+    res.json(JSON.parse(text));
   } catch (error) {
     console.error("AI Error:", error);
     res.status(500).json({ error: "Analysis failed" });
@@ -182,6 +160,6 @@ app.get('/api/events', (req, res) => {
   ]);
 });
 
-// Start server for Render/local
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 API running on http://localhost:${PORT}`));

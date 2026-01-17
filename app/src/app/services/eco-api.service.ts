@@ -1,8 +1,3 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-
 export interface AnalysisResult {
   disposal_method: string;
   bin_color: string;
@@ -10,6 +5,7 @@ export interface AnalysisResult {
   environmental_impact: string;
   sdg_connection?: string;
 }
+
 export interface MarketListing {
   _id?: string;
   title: string;
@@ -21,59 +17,90 @@ export interface MarketListing {
   sellerName?: string;
 }
 
-@Injectable({ providedIn: 'root' })
-export class EcoApiService {
-  private http = inject(HttpClient);
-  private platformId = inject(PLATFORM_ID);
-
+class EcoApiService {
   // Production API points to your Render backend
   private readonly PROD_API = 'https://wastesort-ai-8pj9.onrender.com/api';
 
-  private apiUrl =
-    isPlatformBrowser(this.platformId)
-      ? (location.hostname === 'localhost' ? 'http://localhost:3000/api' : this.PROD_API)
+  private getApiUrl(): string {
+    if (typeof window === 'undefined') return this.PROD_API;
+    return window.location.hostname === 'localhost' 
+      ? 'http://localhost:3000/api' 
       : this.PROD_API;
+  }
 
-  analyzeItem(item: string): Observable<AnalysisResult> {
-    if (isPlatformBrowser(this.platformId)) {
-      return this.http.post<AnalysisResult>(`${this.apiUrl}/analyze`, { item });
-    }
-    return of({} as AnalysisResult);
+  async analyzeItem(item: string): Promise<AnalysisResult> {
+    const response = await fetch(`${this.getApiUrl()}/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ item })
+    });
+    return response.json();
   }
-  getListings(): Observable<MarketListing[]> {
-    if (isPlatformBrowser(this.platformId)) return this.http.get<MarketListing[]>(`${this.apiUrl}/listings`);
-    return of([]);
+
+  async getListings(): Promise<MarketListing[]> {
+    const response = await fetch(`${this.getApiUrl()}/listings`);
+    return response.json();
   }
-  createListing(listing: MarketListing): Observable<any> {
-    if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/listings`, listing);
-    return of(null);
+
+  async createListing(listing: MarketListing): Promise<any> {
+    const response = await fetch(`${this.getApiUrl()}/listings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(listing)
+    });
+    return response.json();
   }
-  getChallengeProgress(): Observable<number[]> {
-    if (isPlatformBrowser(this.platformId)) return this.http.get<number[]>(`${this.apiUrl}/challenge`);
-    return of([]);
+
+  async getChallengeProgress(): Promise<number[]> {
+    const response = await fetch(`${this.getApiUrl()}/challenge`);
+    return response.json();
   }
-  updateChallenge(day: number, completed: boolean): Observable<any> {
-    if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/challenge`, { day, completed });
-    return of(null);
+
+  async updateChallenge(day: number, completed: boolean): Promise<any> {
+    const response = await fetch(`${this.getApiUrl()}/challenge`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ day, completed })
+    });
+    return response.json();
   }
-  calculateCarbon(data: any): Observable<{score: number}> {
-    if (isPlatformBrowser(this.platformId)) return this.http.post<{score: number}>(`${this.apiUrl}/carbon`, data);
-    return of({score: 0});
+
+  async calculateCarbon(data: any): Promise<{score: number}> {
+    const response = await fetch(`${this.getApiUrl()}/carbon`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return response.json();
   }
-  getNews(): Observable<any[]> {
-    if (isPlatformBrowser(this.platformId)) return this.http.get<any[]>(`${this.apiUrl}/news`);
-    return of([]);
+
+  async getNews(): Promise<any[]> {
+    const response = await fetch(`${this.getApiUrl()}/news`);
+    return response.json();
   }
-  getEvents(): Observable<any[]> {
-    if (isPlatformBrowser(this.platformId)) return this.http.get<any[]>(`${this.apiUrl}/events`);
-    return of([]);
+
+  async getEvents(): Promise<any[]> {
+    const response = await fetch(`${this.getApiUrl()}/events`);
+    return response.json();
   }
-  submitVolunteer(data: any): Observable<any> {
-    if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/volunteer`, data);
-    return of(null);
+
+  async submitVolunteer(data: any): Promise<any> {
+    const response = await fetch(`${this.getApiUrl()}/volunteer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return response.json();
   }
-  sendMessage(data: any): Observable<any> {
-    if (isPlatformBrowser(this.platformId)) return this.http.post(`${this.apiUrl}/contact`, data);
-    return of(null);
+
+  async sendMessage(data: any): Promise<any> {
+    const response = await fetch(`${this.getApiUrl()}/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return response.json();
   }
 }
+
+export const ecoApiService = new EcoApiService();
